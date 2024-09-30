@@ -1,0 +1,131 @@
+package edu.jsu.mcis.cs310.coursedb.dao;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class SectionDAO {
+
+    // Method to find sections based on subjectId, course number (num), and termId
+    public String findSections(String subjectId, String courseNumber, int termId) {
+        String sql = "SELECT * FROM section WHERE subjectid = ? AND num = ? AND termid = ?";
+        StringBuilder result = new StringBuilder();
+
+        try (Connection connection = DAOUtility.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            // Set parameters for the prepared statement
+            statement.setString(1, subjectId);
+            statement.setString(2, courseNumber);
+            statement.setInt(3, termId);
+
+            // Debugging output
+            System.out.println("Searching for: Subject ID = " + subjectId + ", Course Number = " + courseNumber + ", Term ID = " + termId);
+
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery();
+
+            // Process the result set
+            while (resultSet.next()) {
+                result.append("Term ID: ").append(resultSet.getInt("termid")).append("\n");
+                result.append("CRN: ").append(resultSet.getInt("crn")).append("\n");
+                result.append("Subject ID: ").append(resultSet.getString("subjectid")).append("\n");
+                result.append("Course Number: ").append(resultSet.getString("num")).append("\n");
+                result.append("Section: ").append(resultSet.getString("section")).append("\n");
+                result.append("Instructor: ").append(resultSet.getString("instructor")).append("\n");
+                result.append("------------------------\n");
+            }
+
+            if (result.length() == 0) {
+                result.append("No sections found.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result.toString();
+    }
+
+    // Method to register for a course
+    public String registerForCourse(int termId, int crn, String studentId) {
+        String sql = "INSERT INTO registrations (termid, crn, student_id) VALUES (?, ?, ?)";
+
+        try (Connection connection = DAOUtility.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, termId);
+            statement.setInt(2, crn);
+            statement.setString(3, studentId);
+
+            int rowsAffected = statement.executeUpdate();
+            return (rowsAffected > 0) ? "Successfully registered for the course." : "Failed to register for the course.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Error registering for course: " + e.getMessage();
+        }
+    }
+
+    // Method to drop a course
+    public String dropCourse(int termId, int crn, String studentId) {
+        String sql = "DELETE FROM registrations WHERE termid = ? AND crn = ? AND student_id = ?";
+
+        try (Connection connection = DAOUtility.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, termId);
+            statement.setInt(2, crn);
+            statement.setString(3, studentId);
+
+            int rowsAffected = statement.executeUpdate();
+            return (rowsAffected > 0) ? "Successfully dropped the course." : "Failed to drop the course.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Error dropping course: " + e.getMessage();
+        }
+    }
+
+    // Method to withdraw from all courses
+    public String withdrawFromAllCourses(String studentId) {
+        String sql = "DELETE FROM registrations WHERE student_id = ?";
+
+        try (Connection connection = DAOUtility.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, studentId);
+            int rowsAffected = statement.executeUpdate();
+            return (rowsAffected > 0) ? "Successfully withdrawn from all courses." : "No courses found to withdraw from.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Error withdrawing from courses: " + e.getMessage();
+        }
+    }
+
+    // Method to list registered courses for a student
+    public String listRegisteredCourses(String studentId) {
+        String sql = "SELECT * FROM registrations WHERE student_id = ?";
+        StringBuilder result = new StringBuilder();
+
+        try (Connection connection = DAOUtility.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, studentId);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                result.append("Term ID: ").append(resultSet.getInt("termid"))
+                      .append(", CRN: ").append(resultSet.getInt("crn"))
+                      .append("\n");
+            }
+
+            if (result.length() == 0) {
+                result.append("No registered courses found.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result.toString();
+    }
+}
+
+

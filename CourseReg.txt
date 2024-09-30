@@ -1,0 +1,131 @@
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+import edu.jsu.mcis.cs310.coursedb.dao.RegistrationDAO;
+import edu.jsu.mcis.cs310.coursedb.dao.SectionDAO;
+
+public class CourseRegistrationApp {
+
+    private static RegistrationDAO registrationDAO = new RegistrationDAO();
+    private static SectionDAO sectionDAO = new SectionDAO();
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean exit = false;
+
+        while (!exit) {
+            System.out.println("Welcome to JSU Course Registration");
+            System.out.println("1. Search Sections");
+            System.out.println("2. Register for a Course");
+            System.out.println("3. Drop a Course");
+            System.out.println("4. Withdraw from All Courses");
+            System.out.println("5. List Registered Courses");
+            System.out.println("6. Exit");
+            System.out.print("Choose an option: ");
+
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine();  // Consume the newline
+
+                switch (choice) {
+                    case 1:
+                        searchSections(scanner);
+                        break;
+                    case 2:
+                        registerCourse(scanner);
+                        break;
+                    case 3:
+                        dropCourse(scanner);
+                        break;
+                    case 4:
+                        withdrawFromCourses(scanner);
+                        break;
+                    case 5:
+                        listRegisteredCourses(scanner);
+                        break;
+                    case 6:
+                        exit = true;
+                        break;
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a number between 1 and 6.");
+                scanner.nextLine(); // Clear the invalid input
+            }
+        }
+
+        scanner.close();
+        System.out.println("Thank you for using JSU Course Registration!");
+    }
+
+    private static void searchSections(Scanner scanner) {
+        System.out.print("Enter Subject ID: ");
+        String subjectId = scanner.nextLine();
+        System.out.print("Enter Course Number: ");
+        String courseNumber = scanner.nextLine();
+        System.out.print("Enter Term ID: ");
+        int termId = scanner.nextInt();
+        scanner.nextLine();  // Consume the newline
+
+        String sections = sectionDAO.findSections(subjectId, courseNumber, termId);
+        System.out.println("Sections found: " + sections);
+    }
+
+    private static void registerCourse(Scanner scanner) {
+        System.out.print("Enter Student ID: ");
+        int studentId = scanner.nextInt();
+        System.out.print("Enter Term ID: ");
+        int termId = scanner.nextInt();
+        System.out.print("Enter CRN: ");
+        String crn = scanner.next();
+
+        boolean result = registrationDAO.create(studentId, termId, crn);
+        if (result) {
+            System.out.println("Registration successful!");
+        } else {
+            System.out.println("Registration failed.");
+        }
+    }
+
+    private static void dropCourse(Scanner scanner) {
+        System.out.print("Enter Student ID: ");
+        int studentId = scanner.nextInt();
+        System.out.print("Enter Term ID: ");
+        int termId = scanner.nextInt();
+        System.out.print("Enter CRN: ");
+        String crn = scanner.next();
+
+        boolean result = registrationDAO.dropCourse(studentId, termId, crn); // Changed to dropCourse
+        if (result) {
+            System.out.println("Course dropped successfully!");
+        } else {
+            System.out.println("Failed to drop the course.");
+        }
+    }
+
+    private static void withdrawFromCourses(Scanner scanner) {
+        System.out.print("Enter Student ID: ");
+        int studentId = scanner.nextInt();
+        System.out.print("Enter Term ID: ");
+        int termId = scanner.nextInt();
+
+        boolean result = registrationDAO.withdrawFromCourses(studentId, termId); // Call the method with termId
+        if (result) {
+            System.out.println("Withdrew from all courses successfully!");
+        } else {
+            System.out.println("Failed to withdraw from courses.");
+        }
+    }
+
+
+    private static void listRegisteredCourses(Scanner scanner) {
+        System.out.print("Enter Student ID: ");
+        int studentId = scanner.nextInt();
+        System.out.print("Enter Term ID: ");
+        int termId = scanner.nextInt();
+
+        String registeredCourses = registrationDAO.list(studentId, termId);
+        System.out.println("Registered courses: " + registeredCourses);
+    }
+}

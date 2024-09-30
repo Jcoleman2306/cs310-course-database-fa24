@@ -1,0 +1,88 @@
+package edu.jsu.mcis.cs310.coursedb.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class RegistrationDAO {
+
+    // Register for a course
+    public boolean create(int studentId, int termId, String crn) {
+        String query = "INSERT INTO registration (studentid, termid, crn) VALUES (?, ?, ?)";
+        
+        try (Connection conn = DAOUtility.getConnection();  // Correctly getting the connection
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, termId);
+            stmt.setString(3, crn);
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0; // Return true if insertion was successful
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log or handle error
+        }
+        
+        return false; // Return false on failure
+    }
+
+    // Drop a previous registration for a single course
+    public boolean dropCourse(int studentId, int termId, String crn) {
+        String query = "DELETE FROM registration WHERE studentid = ? AND termid = ? AND crn = ?";
+        
+        try (Connection conn = DAOUtility.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, termId);
+            stmt.setString(3, crn);
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0; // Return true if deletion was successful
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log or handle error
+        }
+        
+        return false; // Return false on failure
+    }
+
+    // Withdraw from all registered courses
+    public boolean withdrawFromCourses(int studentId, int termId) {  // Added termId parameter
+        String query = "DELETE FROM registration WHERE studentid = ? AND termid = ?";
+        
+        try (Connection conn = DAOUtility.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, termId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0; // Return true if deletion was successful
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log or handle error
+        }
+        
+        return false; // Return false on failure
+    }
+
+    // List all registered courses for a given student ID and term ID
+    public String list(int studentId, int termId) {
+        String jsonResult = "[]"; // Default to empty JSON array
+        String query = "SELECT * FROM registration WHERE studentid = ? AND termid = ? ORDER BY crn";
+        
+        try (Connection conn = DAOUtility.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, termId);
+            
+            ResultSet rs = stmt.executeQuery();
+            jsonResult = DAOUtility.getResultSetAsJson(rs); // Correctly calling the method
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log or handle error
+        }
+        
+        return jsonResult;
+    }
+}
